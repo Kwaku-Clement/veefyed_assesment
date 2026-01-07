@@ -101,18 +101,32 @@ curl -X POST http://localhost:8000/analyze \
 - Image storage is local. For production, a cloud-based storage like AWS S3 or Google Cloud Storage would be preferred.
 
 ## Production Readiness & Improvements
-While this service is designed to be a "small backend service" as per the requirements, it includes several features that move it closer to production readiness:
-1.  Security: Implemented API Key authentication to protect endpoints.
-2.  Validation: Added deep file validation using magic numbers (binary signatures) to prevent malicious file uploads that bypass extension checks.
-3.  Logging: Structured logging with request/response middleware for full auditability and performance monitoring.
-4.  Containerization: Provided a `Dockerfile` for consistent deployment across environments.
-5.  Interactive Documentation: Custom ReDoc and SwaggerUI integration for easier integration testing.
 
-For a full production rollout, further improvements would include:
-- Persistent storage (Database and Cloud Storage).
-- Comprehensive unit and integration test suite (built on the provided test scripts).
-- Rate limiting to prevent abuse.
-- CI/CD pipeline integration.
+This service is designed with scalability and maintainability in mind. While currently a "small backend service" suitable for an MVP, it includes several architectural decisions that pave the way for a full production deployment.
+
+### Current Production-Ready Features
+*   Security First: Implemented API Key authentication (`X-API-Key`) to protect all endpoints from unauthorized access.
+*   Robust Input Validation: Beyond simple file extension checks, the service validates file "magic numbers" (binary signatures) to prevent malicious uploads (e.g., renaming an executable to `.jpg`).
+*   Observability: Custom middleware logs every request duration and status code, providing essential visibility into API performance and usage patterns.
+*   Standardized Error Handling: Consistent HTTP error responses (400, 403, 404) with clear, actionable messages for client consumers.
+*   Containerization: A production-ready `Dockerfile` ensures consistent execution environments, from local development to cloud clusters.
+
+### Roadmap to Full Scale
+To scale this service for high-volume production traffic, the following enhancements are recommended:
+
+1.  **Data Persistence:**
+    *   Database: Migrate from in-memory `image_store` to a persistent SQL (PostgreSQL) or NoSQL (MongoDB) database to track analysis history and user metadata.
+    *   Object Storage: Offload image storage from the local filesystem to a cloud object store (AWS S3, Google Cloud Storage, or Azure Blob Storage) for infinite scalability and better durability.
+
+2.  **Performance & Security:**
+    *   Rate Limiting: Implement rate limiting (e.g., using Redis) to prevent abuse and ensure fair resource usage.
+    *   Asynchronous Processing: Move the image analysis (which can be CPU-intensive) to a background task queue (e.g., Celery + Redis) to keep the API responsive under load.
+    *   HTTPS: Enforce SSL/TLS for all communication.
+
+3.  **DevOps & Testing:**
+    *   CI/CD: Automated pipelines for testing, linting, and deployment.
+    *   Testing: Expand the current test scripts into a full suite of unit and integration tests using `pytest`.
+    *   Monitoring: Integrate with tools like Prometheus/Grafana or Datadog for real-time alerts and deeper metrics.
 
 ## Project Structure
 skin-analysis-api/
