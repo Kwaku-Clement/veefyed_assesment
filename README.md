@@ -24,6 +24,12 @@ docker run -p 8000:8000 image-analysis-api
 
 The API will be available at `http://localhost:8000`
 
+## Documentation
+
+Interactive documentation is available at:
+- **Swagger UI**: `http://localhost:8000/docs`
+- **ReDoc**: `http://localhost:8000/redoc`
+
 ## Authentication
 
 All endpoints are protected by an API Key authentication. You must include the `X-API-Key` header in your requests.
@@ -36,20 +42,20 @@ All endpoints are protected by an API Key authentication. You must include the `
 
 Upload an image file and receive an image_id.
 
-**Request:**
+Request:
 - Method: POST
 - Header: `X-API-Key: secret-token-123`
 - Content-Type: multipart/form-data
 - Body: file (JPEG or PNG, max 5MB)
 
-**Response:**
+Response:
 ```json
 {
   "image_id": "abc123"
 }
 ```
 
-**Example:**
+Example:
 ```bash
 curl -X POST http://localhost:8000/upload \
   -H "X-API-Key: secret-token-123" \
@@ -60,7 +66,7 @@ curl -X POST http://localhost:8000/upload \
 
 Analyze an uploaded image by its image_id.
 
-**Request:**
+Request:
 - Method: POST
 - Header: `X-API-Key: secret-token-123`
 - Content-Type: application/json
@@ -71,7 +77,7 @@ Analyze an uploaded image by its image_id.
 }
 ```
 
-**Response:**
+Response:
 ```json
 {
   "image_id": "abc123",
@@ -81,7 +87,7 @@ Analyze an uploaded image by its image_id.
 }
 ```
 
-**Example:**
+Example:
 ```bash
 curl -X POST http://localhost:8000/analyze \
   -H "X-API-Key: secret-token-123" \
@@ -90,24 +96,23 @@ curl -X POST http://localhost:8000/analyze \
 ```
 
 ## Assumptions
+- For the purpose of this assessment, the `image_store` is in-memory. In a production environment, this would be replaced with a database (e.g., PostgreSQL or MongoDB).
+- The `secret-token-123` is a default API key for demonstration. In production, this would be managed via environment variables or a secure vault.
+- Image storage is local. For production, a cloud-based storage like AWS S3 or Google Cloud Storage would be preferred.
 
-1. Mock Analysis: The analyze endpoint returns randomized mock results (skin type, issues, confidence). No actual AI model is implemented.
-2. Local Storage: Images are stored in the `uploads/` directory on the local file system.
-3. In-Memory Metadata: Image metadata is stored in memory and will be lost when the server restarts.
-4. Single Instance: Designed for single-instance deployment without distributed storage.
+## Production Readiness & Improvements
+While this service is designed to be a "small backend service" as per the requirements, it includes several features that move it closer to production readiness:
+1.  Security: Implemented API Key authentication to protect endpoints.
+2.  Validation: Added deep file validation using magic numbers (binary signatures) to prevent malicious file uploads that bypass extension checks.
+3.  Logging: Structured logging with request/response middleware for full auditability and performance monitoring.
+4.  Containerization: Provided a `Dockerfile` for consistent deployment across environments.
+5.  Interactive Documentation: Custom ReDoc and SwaggerUI integration for easier integration testing.
 
-## Improvements for Production
-
-If this were a production-grade application, I would implement the following improvements:
-
-1. **Persistent Storage**: Replace local file storage with cloud object storage (e.g., AWS S3, Google Cloud Storage) for scalability and reliability.
-2. **Database Integration**: Use a proper database (PostgreSQL/MongoDB) instead of in-memory dictionaries to persist image metadata and analysis results.
-3. **Authentication & Authorization**: Implement robust authentication (OAuth2/JWT) to secure endpoints and manage user access.
-4. **Asynchronous Processing**: Offload heavy AI analysis tasks to a background worker queue (e.g., Celery, Redis) to prevent blocking the main application thread.
-5. **Real AI Integration**: Integrate actual Machine Learning models (PyTorch/TensorFlow) for skin analysis instead of mock logic.
-6. **Input Validation**: Add more rigorous validation for image formats (magic numbers) and sanitization to prevent security vulnerabilities.
-7. **CI/CD Pipeline**: Set up automated testing and deployment pipelines.
-8. **Monitoring & Alerting**: Implement tools like Prometheus/Grafana or Sentry for real-time monitoring and error tracking.
+For a full production rollout, further improvements would include:
+- Persistent storage (Database and Cloud Storage).
+- Comprehensive unit and integration test suite (built on the provided test scripts).
+- Rate limiting to prevent abuse.
+- CI/CD pipeline integration.
 
 ## Project Structure
 skin-analysis-api/
